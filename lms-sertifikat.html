@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sertifikat – Mahir Belajar dan Mengajar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,500;0,700;1,500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet"/>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <!-- html2canvas for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --green:#1a6b3c;--green-d:#0f4224;--green-l:#e8f5ee;
+      --gold:#c9a84c;--gold-l:#f5e6c0;--gold-d:#8a6a1a;
+      --bg:#f3efe7;--surface:#fff;--text:#1c1c1e;--muted:#6b7280;
+      --border:#e5ddd0;--radius:16px;
+    }
+    html,body{min-height:100vh;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text)}
+
+    /* ── TOPBAR ── */
+    .topbar{background:var(--green-d);color:#fff;padding:14px 28px;display:flex;align-items:center;gap:16px}
+    .topbar-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;letter-spacing:.5px}
+    .topbar-logo span{color:#f4c060}
+    .topbar-back{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;
+      padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;
+      display:flex;align-items:center;gap:6px;transition:background .2s;margin-left:auto}
+    .topbar-back:hover{background:rgba(255,255,255,.25)}
+
+    /* ── LAYOUT ── */
+    .page-wrap{max-width:960px;margin:0 auto;padding:32px 24px 60px}
+
+    /* ── RESULT CARD (nilai & grade) ── */
+    .result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:28px 32px;margin-bottom:28px;display:flex;align-items:center;gap:28px;
+      box-shadow:0 4px 20px rgba(0,0,0,.06)}
+    .result-score-circle{
+      width:100px;height:100px;border-radius:50%;flex-shrink:0;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      font-weight:800;border:4px solid;
+    }
+    .result-score-num{font-size:32px;line-height:1}
+    .result-score-max{font-size:11px;opacity:.7;margin-top:2px}
+    .result-info{flex:1}
+    .result-grade-badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 16px;border-radius:20px;font-weight:800;font-size:14px;margin-bottom:10px
+    }
+    .result-title{font-size:18px;font-weight:800;margin-bottom:4px}
+    .result-sub{font-size:13px;color:var(--muted);line-height:1.6}
+    .result-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+    .result-meta-item{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
+    .result-meta-item strong{color:var(--text);font-weight:700}
+
+    /* Grade colors */
+    .grade-aplus{color:#0f4224;background:#d1fae5;border-color:#0f4224}
+    .grade-a{color:#065f46;background:#d1fae5;border-color:#065f46}
+    .grade-b{color:#1e40af;background:#dbeafe;border-color:#1e40af}
+    .grade-c{color:#92400e;background:#fef3c7;border-color:#92400e}
+    .grade-d{color:#991b1b;background:#fee2e2;border-color:#991b1b}
+    .grade-e{color:#7f1d1d;background:#fecaca;border-color:#7f1d1d}
+
+    /* ── RETRY CARD ── */
+    .retry-card{background:#fff5f5;border:2px solid #fca5a5;border-radius:var(--radius);
+      padding:32px;text-align:center;margin-bottom:28px}
+    .retry-icon{font-size:52px;margin-bottom:16px}
+    .retry-title{font-size:22px;font-weight:800;color:#991b1b;margin-bottom:8px}
+    .retry-sub{font-size:14px;color:#6b7280;line-height:1.7;margin-bottom:24px}
+    .retry-btn{
+      background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;
+      border:none;padding:13px 32px;border-radius:10px;font-size:15px;font-weight:700;
+      cursor:pointer;transition:transform .15s,box-shadow .2s;
+      box-shadow:0 4px 16px rgba(220,38,38,.35)
+    }
+    .retry-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(220,38,38,.4)}
+
+    /* ── CERTIFICATE PREVIEW ── */
+    .cert-section-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:16px;
+      display:flex;align-items:center;gap:8px}
+    .cert-preview-wrap{
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:24px;margin-bottom:24px;box-shadow:0 4px 20px rgba(0,0,0,.06);overflow:hidden
+    }
+
+    /* ── THE CERTIFICATE (Canvas-rendered design) ── */
+    #cert-canvas-wrap{
+      width:100%;aspect-ratio:1.414/1;position:relative;overflow:hidden;
+      background:linear-gradient(135deg,#0a2e1a 0%,#1a6b3c 40%,#0f4224 100%);
+      border-radius:8px;
+    }
+    canvas#certCanvas{width:100%;height:100%;display:block}
+
+    /* ── ACTION BUTTONS ── */
+    .cert-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px}
+    .btn-download{
+      flex:1;min-width:180px;padding:14px 24px;border-radius:12px;border:none;
+      font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;
+      justify-content:center;gap:8px;transition:all .2s
+    }
+    .btn-dl-pdf{
+      background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;
+      box-shadow:0 4px 16px rgba(26,107,60,.35)
+    }
+    .btn-dl-pdf:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,107,60,.45)}
+    .btn-dl-img{
+      background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#fff;
+      box-shadow:0 4px 16px rgba(201,168,76,.35)
+    }
+    .btn-dl-img:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,168,76,.45)}
+    .btn-dl-share{
+      background:var(--surface);color:var(--green);border:2px solid var(--green);
+    }
+    .btn-dl-share:hover{background:var(--green-l)}
+
+    /* ── CERT INFO TABLE ── */
+    .cert-info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+    .cert-info-title{font-size:14px;font-weight:800;margin-bottom:16px;color:var(--text)}
+    .cert-info-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);
+      font-size:13px;align-items:flex-start}
+    .cert-info-row:last-child{border-bottom:none}
+    .cert-info-label{width:160px;flex-shrink:0;color:var(--muted);font-weight:600}
+    .cert-info-val{flex:1;color:var(--text);font-weight:500}
+    .cert-no-badge{
+      background:var(--green-l);color:var(--green);font-weight:800;
+      padding:3px 10px;border-radius:6px;font-size:12px;font-family:monospace
+    }
+
+    /* ── LOADING ── */
+    .loading-wrap{text-align:center;padding:80px 20px}
+    .loading-spinner{
+      width:48px;height:48px;border:4px solid var(--border);
+      border-top-color:var(--green);border-radius:50%;
+      animation:spin .8s linear infinite;margin:0 auto 16px
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{font-size:14px;color:var(--muted)}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:600px){
+      .result-card{flex-direction:column;text-align:center}
+      .result-meta{justify-content:center}
+      .cert-actions{flex-direction:column}
+      .btn-download{min-width:unset}
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">Mahir Belajar <span>&</span> Mengajar</div>
+  <button class="topbar-back" onclick="goBack()">
+    ← Kembali ke Dashboard
+  </button>
+</div>
+
+<div class="page-wrap">
+  <!-- Loading state -->
+  <div class="loading-wrap" id="loadingWrap">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Memproses hasil ujian...</div>
+  </div>
+
+  <!-- Content (hidden until loaded) -->
+  <div id="mainContent" style="display:none">
+
+    <!-- RESULT CARD -->
+    <div class="result-card" id="resultCard"></div>
+
+    <!-- RETRY CARD (shown if grade D/E) -->
+    <div class="retry-card" id="retryCard" style="display:none">
+      <div class="retry-icon">📋</div>
+      <div class="retry-title">Belum Memenuhi Passing Grade</div>
+      <div class="retry-sub" id="retryMsg"></div>
+      <button class="retry-btn" onclick="retryTest()">🔄 Ulangi Post-Test</button>
+    </div>
+
+    <!-- CERTIFICATE SECTION (shown if grade A+/A/B/C) -->
+    <div id="certSection" style="display:none">
+      <div class="cert-section-title">🏆 Sertifikat Kelulusan Anda</div>
+
+      <div class="cert-preview-wrap">
+        <div id="cert-canvas-wrap">
+          <canvas id="certCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="cert-actions">
+        <button class="btn-download btn-dl-pdf" onclick="downloadPDF()">
+          📄 Download PDF
+        </button>
+        <button class="btn-download btn-dl-img" onclick="downloadImage()">
+          🖼️ Download Gambar (PNG)
+        </button>
+        <button class="btn-download btn-dl-share" onclick="shareCert()">
+          🔗 Bagikan
+        </button>
+      </div>
+
+      <div class="cert-info-card">
+        <div class="cert-info-title">📋 Detail Sertifikat</div>
+        <div id="certInfoRows"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Firebase Init ──────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCFx4Ra_Oq1FSi77_Hiw0TmCKvqnB13wjk",
+  authDomain: "portfolio-database-59d3f.firebaseapp.com",
+  projectId: "portfolio-database-59d3f",
+  storageBucket: "portfolio-database-59d3f.firebasestorage.app",
+  messagingSenderId: "750538196520",
+  appId: "1:750538196520:web:de4ddfacd4845f7ab8171d"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ── Grade System ───────────────────────────────────────────────────────────
+function getGrade(nilai) {
+  if (nilai === 100) return { grade:'A+', label:'Sempurna',   color:'#0f4224', bg:'#d1fae5', pass:true  };
+  if (nilai >= 90)  return { grade:'A',  label:'Sangat Baik', color:'#065f46', bg:'#d1fae5', pass:true  };
+  if (nilai >= 80)  return { grade:'B',  label:'Baik',        color:'#1e40af', bg:'#dbeafe', pass:true  };
+  if (nilai >= 70)  return { grade:'C',  label:'Cukup',       color:'#92400e', bg:'#fef3c7', pass:true  };
+  if (nilai >= 60)  return { grade:'D',  label:'Kurang',      color:'#991b1b', bg:'#fee2e2', pass:false };
+  return                   { grade:'E',  label:'Sangat Kurang',color:'#7f1d1d', bg:'#fecaca', pass:false };
+}
+
+// ── Generate Nomor Sertifikat ──────────────────────────────────────────────
+function genNomorSertifikat(nama, kursus) {
+  const now   = new Date();
+  const yr    = now.getFullYear();
+  const mo    = String(now.getMonth()+1).padStart(2,'0');
+  const rand  = Math.floor(Math.random()*9000)+1000;
+  const inits = nama.split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,3);
+  return `MBM/${yr}/${mo}/${inits}/${rand}`;
+}
+
+// ── State ──────────────────────────────────────────────────────────────────
+let certData = null;
+
+// ── Init: baca params dari URL ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const p       = new URLSearchParams(window.location.search);
+  const nama    = decodeURIComponent(p.get('nama')    || 'Peserta');
+  const kursus  = decodeURIComponent(p.get('kursus')  || 'Kursus');
+  const nilai   = parseInt(p.get('nilai') || '0', 10);
+  const benar   = parseInt(p.get('benar') || '0', 10);
+  const total   = parseInt(p.get('total') || '10', 10);
+  const durasi  = decodeURIComponent(p.get('durasi')  || '-');
+
+  const gradeInfo = getGrade(nilai);
+  const tanggal   = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const nomorSert = genNomorSertifikat(nama, kursus);
+
+  certData = { nama, kursus, nilai, benar, total, durasi, gradeInfo, tanggal, nomorSert };
+
+  renderResultCard(certData);
+
+  if (gradeInfo.pass) {
+    await saveCertToFirebase(certData);
+    renderCertificate(certData);
+    renderCertInfo(certData);
+    document.getElementById('certSection').style.display = 'block';
+  } else {
+    renderRetryCard(certData);
+    document.getElementById('retryCard').style.display = 'block';
+  }
+
+  document.getElementById('loadingWrap').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+});
+
+// ── Render Result Card ─────────────────────────────────────────────────────
+function renderResultCard(d) {
+  const g = d.gradeInfo;
+  const gradeClass = {
+    'A+':'grade-aplus','A':'grade-a','B':'grade-b',
+    'C':'grade-c','D':'grade-d','E':'grade-e'
+  }[g.grade] || 'grade-c';
+
+  document.getElementById('resultCard').innerHTML = `
+    <div class="result-score-circle ${gradeClass}" style="border-color:${g.color};color:${g.color}">
+      <div class="result-score-num">${d.nilai}</div>
+      <div class="result-score-max">dari 100</div>
+    </div>
+    <div class="result-info">
+      <div class="result-grade-badge ${gradeClass}">
+        Grade ${g.grade} — ${g.label}
+        ${g.pass ? '✅' : '❌'}
+      </div>
+      <div class="result-title">${d.kursus}</div>
+      <div class="result-sub">
+        ${g.pass
+          ? `Selamat! Anda lulus dengan nilai <strong>${d.nilai}</strong>. Sertifikat Anda siap diunduh.`
+          : `Nilai Anda <strong>${d.nilai}</strong> belum mencapai passing grade (70). Silakan ulangi post-test.`
+        }
+      </div>
+      <div class="result-meta">
+        <div class="result-meta-item">✅ Benar: <strong>${d.benar}/${d.total}</strong></div>
+        <div class="result-meta-item">⏱️ Durasi: <strong>${d.durasi}</strong></div>
+        <div class="result-meta-item">📅 Tanggal: <strong>${d.tanggal}</strong></div>
+      </div>
+    </div>`;
+}
+
+// ── Render Retry Card ──────────────────────────────────────────────────────
+function renderRetryCard(d) {
+  const g = d.gradeInfo;
+  document.getElementById('retryMsg').innerHTML =
+    `Nilai Anda: <strong>${d.nilai}</strong> (Grade ${g.grade} – ${g.label})<br>
+     Passing grade minimum adalah <strong>70</strong> (Grade C).<br>
+     Pelajari kembali materi <em>${d.kursus}</em> lalu coba lagi.`;
+}
+
+// ── Save to Firebase ───────────────────────────────────────────────────────
+async function saveCertToFirebase(d) {
+  try {
+    await db.collection('sertifikat').doc(d.nomorSert.replace(/\//g,'-')).set({
+      nomorSertifikat : d.nomorSert,
+      nama            : d.nama,
+      kursus          : d.kursus,
+      nilai           : d.nilai,
+      grade           : d.gradeInfo.grade,
+      benar           : d.benar,
+      total           : d.total,
+      tanggal         : d.tanggal,
+      createdAt       : firebase.firestore.FieldValue.serverTimestamp()
+    });
+    console.log('✅ Sertifikat tersimpan:', d.nomorSert);
+  } catch(e) {
+    console.warn('Firebase save failed (offline mode):', e.message);
+  }
+}
+
+// ── Draw Certificate on Canvas ─────────────────────────────────────────────
+function renderCertificate(d) {
+  const wrap   = document.getElementById('cert-canvas-wrap');
+  const canvas = document.getElementById('certCanvas');
+  const W = 1414, H = 1000;
+  canvas.width  = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // ── Background gradient ──
+  const bgGrad = ctx.createLinearGradient(0,0,W,H);
+  bgGrad.addColorStop(0,   '#071a0e');
+  bgGrad.addColorStop(0.4, '#0f4224');
+  bgGrad.addColorStop(0.7, '#1a6b3c');
+  bgGrad.addColorStop(1,   '#0a2e1a');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0,0,W,H);
+
+  // ── Decorative corner ornaments ──
+  drawCornerOrnament(ctx, 0,   0,   'tl', W, H);
+  drawCornerOrnament(ctx, W,   0,   'tr', W, H);
+  drawCornerOrnament(ctx, 0,   H,   'bl', W, H);
+  drawCornerOrnament(ctx, W,   H,   'br', W, H);
+
+  // ── Outer gold border ──
+  ctx.strokeStyle = '#c9a84c';
+  ctx.lineWidth   = 6;
+  ctx.strokeRect(30, 30, W-60, H-60);
+
+  // ── Inner thin border ──
+  ctx.strokeStyle = 'rgba(201,168,76,0.4)';
+  ctx.lineWidth   = 1.5;
+  ctx.strokeRect(46, 46, W-92, H-92);
+
+  // ── Watermark circles ──
+  for (let i=0; i<3; i++) {
+    ctx.beginPath();
+    ctx.arc(W/2, H/2, 180+i*60, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(201,168,76,${0.04-i*0.01})`;
+    ctx.lineWidth   = 1;
+    ctx.stroke();
+  }
+
+  // ── Header: Platform name ──
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#c9a84c';
+  ctx.font      = 'bold 28px "Playfair Display", serif';
+  ctx.fillText('MAHIR BELAJAR DAN MENGAJAR', W/2, 120);
+
+  // ── Divider line ──
+  drawGoldDivider(ctx, W/2, 140, 400);
+
+  // ── "SERTIFIKAT KELULUSAN" ──
+  ctx.fillStyle = '#ffffff';
+  ctx.font      = 'bold 56px "Playfair Display", serif';
+  ctx.fillText('SERTIFIKAT KELULUSAN', W/2, 220);
+
+  // ── Subtitle ──
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.font      = '22px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Diberikan kepada yang terhormat', W/2, 270);
+
+  // ── Recipient name ──
+  ctx.fillStyle = '#f4c060';
+  ctx.font      = 'italic bold 64px "Playfair Display", serif';
+  ctx.fillText(d.nama, W/2, 360);
+
+  // ── Underline name ──
+  const nameW = ctx.measureText(d.nama).width;
+  ctx.strokeStyle = '#c9a84c';
+  ctx.lineWidth   = 2;
+  ctx.beginPath();
+  ctx.moveTo(W/2 - nameW/2, 375);
+  ctx.lineTo(W/2 + nameW/2, 375);
+  ctx.stroke();
+
+  // ── "telah berhasil menyelesaikan" ──
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  ctx.font      = '22px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('telah berhasil menyelesaikan kursus', W/2, 420);
+
+  // ── Course name ──
+  ctx.fillStyle = '#ffffff';
+  ctx.font      = 'bold 36px "Plus Jakarta Sans", sans-serif';
+  wrapText(ctx, d.kursus, W/2, 470, W-200, 44);
+
+  // ── Divider ──
+  drawGoldDivider(ctx, W/2, 530, 600);
+
+  // ── Score & Grade box ──
+  drawScoreBox(ctx, W/2 - 280, 560, d.nilai, d.gradeInfo);
+
+  // ── Date box ──
+  drawInfoBox(ctx, W/2 + 60, 560, '📅 Tanggal', d.tanggal);
+
+  // ── Cert number ──
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font      = '16px monospace';
+  ctx.fillText('No. Sertifikat: ' + d.nomorSert, W/2, 680);
+
+  // ── Signature area ──
+  drawSignature(ctx, W/2, 760, 'Wolter Junaedi Nurhamidin, S.Kom., S.Pd., MH.', 'Direktur Platform');
+
+  // ── Bottom stamp ──
+  drawStamp(ctx, W/2, 900);
+}
+
+// ── Helper: Corner ornament ────────────────────────────────────────────────
+function drawCornerOrnament(ctx, x, y, pos, W, H) {
+  const size = 80;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.strokeStyle = '#c9a84c';
+  ctx.lineWidth   = 2;
+  const dirs = {
+    tl: [1,1], tr: [-1,1], bl: [1,-1], br: [-1,-1]
+  }[pos];
+  ctx.beginPath();
+  ctx.moveTo(dirs[0]*20, dirs[1]*0);
+  ctx.lineTo(dirs[0]*size, dirs[1]*0);
+  ctx.moveTo(dirs[0]*0, dirs[1]*20);
+  ctx.lineTo(dirs[0]*0, dirs[1]*size);
+  ctx.stroke();
+  // Diamond
+  ctx.fillStyle = '#c9a84c';
+  ctx.beginPath();
+  ctx.arc(dirs[0]*10, dirs[1]*10, 5, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// ── Helper: Gold divider ───────────────────────────────────────────────────
+function drawGoldDivider(ctx, cx, y, halfW) {
+  const grad = ctx.createLinearGradient(cx-halfW, y, cx+halfW, y);
+  grad.addColorStop(0,   'transparent');
+  grad.addColorStop(0.3, '#c9a84c');
+  grad.addColorStop(0.5, '#f5e6c0');
+  grad.addColorStop(0.7, '#c9a84c');
+  grad.addColorStop(1,   'transparent');
+  ctx.strokeStyle = grad;
+  ctx.lineWidth   = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx-halfW, y);
+  ctx.lineTo(cx+halfW, y);
+  ctx.stroke();
+  // Center diamond
+  ctx.fillStyle = '#c9a84c';
+  ctx.save();
+  ctx.translate(cx, y);
+  ctx.rotate(Math.PI/4);
+  ctx.fillRect(-5,-5,10,10);
+  ctx.restore();
+}
+
+// ── Helper: Score box ──────────────────────────────────────────────────────
+function drawScoreBox(ctx, x, y, nilai, g) {
+  const w=260, h=100;
+  ctx.fillStyle = 'rgba(255,255,255,0.07)';
+  roundRect(ctx, x, y, w, h, 12);
+  ctx.fill();
+  ctx.strokeStyle = '#c9a84c';
+  ctx.lineWidth   = 1;
+  roundRect(ctx, x, y, w, h, 12);
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font      = '13px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('NILAI & GRADE', x+w/2, y+22);
+
+  ctx.fillStyle = '#f4c060';
+  ctx.font      = 'bold 42px "Playfair Display", serif';
+  ctx.fillText(nilai, x+w/2-30, y+72);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font      = 'bold 28px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('/ ' + g.grade, x+w/2+30, y+72);
+}
+
+// ── Helper: Info box ───────────────────────────────────────────────────────
+function drawInfoBox(ctx, x, y, label, value) {
+  const w=320, h=100;
+  ctx.fillStyle = 'rgba(255,255,255,0.07)';
+  roundRect(ctx, x, y, w, h, 12);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(201,168,76,0.4)';
+  ctx.lineWidth   = 1;
+  roundRect(ctx, x, y, w, h, 12);
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font      = '13px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(label, x+w/2, y+22);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font      = 'bold 20px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(value, x+w/2, y+62);
+}
+
+// ── Helper: Signature ─────────────────────────────────────────────────────
+function drawSignature(ctx, cx, y, name, role) {
+  // Line
+  ctx.strokeStyle = 'rgba(201,168,76,0.6)';
+  ctx.lineWidth   = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx-160, y+10);
+  ctx.lineTo(cx+160, y+10);
+  ctx.stroke();
+
+  // Signature text (stylized)
+  ctx.textAlign   = 'center';
+  ctx.fillStyle   = '#f4c060';
+  ctx.font        = 'italic bold 28px "Playfair Display", serif';
+  ctx.fillText(name.split(',')[0], cx, y-10);
+
+  ctx.fillStyle   = '#ffffff';
+  ctx.font        = 'bold 16px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(name, cx, y+32);
+
+  ctx.fillStyle   = 'rgba(255,255,255,0.55)';
+  ctx.font        = '14px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(role, cx, y+52);
+}
+
+// ── Helper: Bottom stamp ───────────────────────────────────────────────────
+function drawStamp(ctx, cx, y) {
+  ctx.textAlign   = 'center';
+  ctx.fillStyle   = 'rgba(201,168,76,0.5)';
+  ctx.font        = '13px monospace';
+  ctx.fillText('✦ MAHIR BELAJAR DAN MENGAJAR ✦ SERTIFIKAT RESMI ✦ VERIFIED ✦', cx, y);
+}
+
+// ── Helper: Rounded rect path ─────────────────────────────────────────────
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+// ── Helper: Wrap long text ────────────────────────────────────────────────
+function wrapText(ctx, text, cx, y, maxW, lineH) {
+  const words = text.split(' ');
+  let line = '';
+  let curY  = y;
+  for (const word of words) {
+    const test = line ? line+' '+word : word;
+    if (ctx.measureText(test).width > maxW && line) {
+      ctx.fillText(line, cx, curY);
+      line = word;
+      curY += lineH;
+    } else {
+      line = test;
+    }
+  }
+  ctx.fillText(line, cx, curY);
+}
+
+// ── Render Cert Info Table ─────────────────────────────────────────────────
+function renderCertInfo(d) {
+  document.getElementById('certInfoRows').innerHTML = `
+    <div class="cert-info-row">
+      <div class="cert-info-label">No. Sertifikat</div>
+      <div class="cert-info-val"><span class="cert-no-badge">${d.nomorSert}</span></div>
+    </div>
+    <div class="cert-info-row">
+      <div class="cert-info-label">Nama Peserta</div>
+      <div class="cert-info-val">${d.nama}</div>
+    </div>
+    <div class="cert-info-row">
+      <div class="cert-info-label">Kursus</div>
+      <div class="cert-info-val">${d.kursus}</div>
+    </div>
+    <div class="cert-info-row">
+      <div class="cert-info-label">Nilai</div>
+      <div class="cert-info-val"><strong>${d.nilai}</strong> / 100 — Grade <strong>${d.gradeInfo.grade}</strong> (${d.gradeInfo.label})</div>
+    </div>
+    <div class="cert-info-row">
+      <div class="cert-info-label">Jawaban Benar</div>
+      <div class="cert-info-val">${d.benar} dari ${d.total} soal</div>
+    </div>
+    <div class="cert-info-row">
+      <div class="cert-info-label">Tanggal</div>
+      <div class="cert-info-val">${d.tanggal}</div>
+    </div>
+    <div class="cert-info-row">
+      <div class="cert-info-label">Diterbitkan oleh</div>
+      <div class="cert-info-val">Wolter Junaedi Nurhamidin, S.Kom., S.Pd., MH.</div>
+    </div>
+    <div class="cert-info-row">
+      <div class="cert-info-label">Platform</div>
+      <div class="cert-info-val">Mahir Belajar dan Mengajar</div>
+    </div>`;
+}
+
+// ── Download PDF ───────────────────────────────────────────────────────────
+async function downloadPDF() {
+  const btn = document.querySelector('.btn-dl-pdf');
+  btn.textContent = '⏳ Membuat PDF...';
+  btn.disabled    = true;
+  try {
+    const canvas  = document.getElementById('certCanvas');
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+    pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+    const safeName = certData.nama.replace(/[^a-zA-Z0-9]/g,'_');
+    pdf.save(`Sertifikat_${safeName}_${certData.nomorSert.replace(/\//g,'-')}.pdf`);
+  } catch(e) {
+    alert('Gagal membuat PDF: ' + e.message);
+  }
+  btn.textContent = '📄 Download PDF';
+  btn.disabled    = false;
+}
+
+// ── Download Image ─────────────────────────────────────────────────────────
+function downloadImage() {
+  const canvas   = document.getElementById('certCanvas');
+  const link     = document.createElement('a');
+  const safeName = certData.nama.replace(/[^a-zA-Z0-9]/g,'_');
+  link.download  = `Sertifikat_${safeName}.png`;
+  link.href      = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// ── Share ──────────────────────────────────────────────────────────────────
+function shareCert() {
+  const text = `🏆 Saya telah menyelesaikan kursus "${certData.kursus}" di platform Mahir Belajar dan Mengajar dengan nilai ${certData.nilai} (Grade ${certData.gradeInfo.grade})!\n\nNo. Sertifikat: ${certData.nomorSert}`;
+  if (navigator.share) {
+    navigator.share({ title:'Sertifikat Kelulusan', text });
+  } else {
+    navigator.clipboard.writeText(text).then(() => alert('✅ Teks sertifikat disalin ke clipboard!'));
+  }
+}
+
+// ── Retry test ─────────────────────────────────────────────────────────────
+function retryTest() {
+  const p = new URLSearchParams(window.location.search);
+  const nama = p.get('nama') || '';
+  const kursus = p.get('kursus') || '';
+  window.location.href = 'lms-tryout.html?nama=' + encodeURIComponent(nama) + '&kursus=' + encodeURIComponent(kursus);
+}
+
+// ── Back ───────────────────────────────────────────────────────────────────
+function goBack() {
+  window.location.href = 'integrated-platform.html?page=dashboard';
+}
+</script>
+</body>
+</html>

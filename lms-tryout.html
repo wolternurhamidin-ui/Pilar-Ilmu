@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Tryout Professional - AKHLAK Mix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #1a6b3c;
+            --primary-dark: #0f4224;
+            --accent: #f4a024;
+            --bg: #f3efe7;
+            --surface: #ffffff;
+            --text: #1c1c1e;
+            --muted: #6b7280;
+            --border: #e5ddd0;
+            --radius: 14px;
+            --shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .tryout-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ═══ HEADER ═══ */
+        .tryout-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: #1e293b;
+            color: white;
+            padding: 0 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-back-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+        }
+
+        .header-back-btn:hover {
+            opacity: 0.7;
+        }
+
+        .header-title {
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-info {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .header-timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-timer-icon {
+            font-size: 16px;
+        }
+
+        .header-timer-value {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            color: #f4a024;
+            min-width: 60px;
+        }
+
+        /* ═══ MAIN LAYOUT ═══ */
+        .tryout-main {
+            display: flex;
+            margin-top: 64px;
+            height: calc(100vh - 64px);
+            overflow: hidden;
+        }
+
+        /* ═══ SOAL AREA ═══ */
+        .tryout-soal-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 48px;
+            background: white;
+        }
+
+        .soal-nomor {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .soal-teks {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .soal-opsi {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .opsi-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--surface);
+        }
+
+        .opsi-item:hover {
+            border-color: var(--primary);
+            background: rgba(26, 107, 60, 0.05);
+            transform: translateX(4px);
+        }
+
+        .opsi-item.active {
+            border-color: var(--primary);
+            background: rgba(26, 107, 60, 0.1);
+        }
+
+        .opsi-label {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: var(--muted);
+            flex-shrink: 0;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .opsi-item.active .opsi-label {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .opsi-teks {
+            font-size: 15px;
+            color: var(--text);
+            line-height: 1.5;
+            padding-top: 2px;
+        }
+
+        /* ═══ NAVIGASI SIDEBAR ═══ */
+        .tryout-navigasi {
+            width: 300px;
+            background: #f8fafc;
+            border-left: 1px solid var(--border);
+            padding: 24px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .nav-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .nav-item {
+            aspect-ratio: 1 / 1;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            background: var(--surface);
+            color: var(--muted);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            border-color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(26, 107, 60, 0.2);
+        }
+
+        .nav-item.answered {
+            background: #2d9e5c;
+            color: white;
+            border-color: #2d9e5c;
+        }
+
+        .nav-item.ragu {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        /* ═══ FILTER ═══ */
+        .nav-filter {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: auto;
+        }
+
+        .filter-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+
+        .filter-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ═══ FOOTER ═══ */
+        .tryout-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: white;
+            border-top: 1px solid var(--border);
+            padding: 16px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+            z-index: 50;
+        }
+
+        .footer-btn {
+            padding: 12px 28px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-btn:hover {
+            background: #f5f0e8;
+        }
+
+        .footer-btn-tunda {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .footer-btn-tunda:hover {
+            background: #e08010;
+        }
+
+        .footer-btn-akhiri {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+            margin-left: auto;
+        }
+
+        .footer-btn-akhiri:hover {
+            background: #c0392b;
+        }
+
+        .footer-btn-next {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .footer-btn-next:hover {
+            background: var(--primary-dark);
+        }
+
+        /* ═══ SCROLLBAR ═══ */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--muted);
+        }
+
+        /* ═══ RESPONSIVE ═══ */
+        @media (max-width: 1024px) {
+            .tryout-navigasi {
+                width: 260px;
+                padding: 16px;
+            }
+
+            .nav-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tryout-soal-area {
+                padding: 24px 16px;
+            }
+
+            .tryout-navigasi {
+                display: none;
+            }
+
+            .tryout-footer {
+                height: auto;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+            }
+
+            .soal-teks {
+                font-size: 16px;
+            }
+
+            .opsi-item {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tryout-container">
+        <!-- HEADER -->
+        <div class="tryout-header">
+            <div class="header-left">
+                <button class="header-back-btn" onclick="goBack()" title="Kembali">←</button>
+                <div class="header-title">AKHLAK Mix Tryout</div>
+            </div>
+            <div class="header-right">
+                <div class="header-info" id="infoProgres">Soal ke-1 dari 10</div>
+                <div class="header-timer">
+                    <span class="header-timer-icon">⏱️</span>
+                    <span class="header-timer-value" id="timer">10:00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="tryout-main">
+            <!-- AREA SOAL -->
+            <div class="tryout-soal-area">
+                <div class="soal-nomor" id="soalNomor">Soal No. 1</div>
+                <div class="soal-teks" id="soalTeks">Loading...</div>
+                <div class="soal-opsi" id="opsiContainer"></div>
+            </div>
+
+            <!-- SIDEBAR NAVIGASI -->
+            <div class="tryout-navigasi">
+                <div>
+                    <div class="nav-title">Navigasi Soal</div>
+                    <div class="nav-grid" id="gridNavigasi"></div>
+                </div>
+
+                <!-- FILTER -->
+                <div class="nav-filter">
+                    <div class="filter-title">Status Soal</div>
+                    <div class="filter-item">
+                        <div class="filter-dot" style="background: #e74c3c;"></div>
+                        <span>Belum Dijawab</span>
+                    </div>
+                    <div class="filter-item">
+                        <div class="filter-dot" style="background: #2d9e5c;"></div>
+                        <span>Sudah Dijawab</span>
+                    </div>
+                    <div class="filter-item">
+                        <div class="filter-dot" style="background: #3b82f6;"></div>
+                        <span>Ragu-Ragu</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="tryout-footer">
+            <button class="footer-btn" onclick="navigasi(-1)">← Sebelumnya</button>
+            <button class="footer-btn footer-btn-tunda" onclick="tandaiRagu()">⏸ Tunda</button>
+            <button class="footer-btn footer-btn-akhiri" onclick="akhiriUjian()">■ Akhiri</button>
+            <button class="footer-btn footer-btn-next" onclick="navigasi(1)">Selanjutnya →</button>
+        </div>
+    </div>
+
+    <script>
+        // ═══ BANK SOAL AKHLAK MIX - 10 SOAL ═══
+        const bankSoal = [
+            {
+                id: 1,
+                teks: "Seorang bawahan menyerahkan laporan dengan hasil memuaskan, namun saya mencurigai adanya ketidaksesuaian data. Untuk bersikap amanah, tindakan yang tepat adalah:",
+                opsi: [
+                    "Menyetujui laporan agar tidak menimbulkan konflik dengan bawahan",
+                    "Memeriksa kebenaran data dan memberikan umpan balik jika ditemukan kesalahan",
+                    "Mengabaikan kecurigaan karena hasil akhirnya sudah memuaskan",
+                    "Melaporkan langsung ke atasan tanpa melakukan konfirmasi terlebih dahulu"
+                ],
+                kunci: 1
+            },
+            {
+                id: 2,
+                teks: "Bagaimana cara menjaga integritas di lingkungan kerja yang memiliki tekanan tinggi?",
+                opsi: [
+                    "Mengikuti arus demi keselamatan diri sendiri",
+                    "Tetap berpegang pada SOP dan kode etik meskipun ada tantangan",
+                    "Bekerja semampunya saja tanpa memperhatikan standar kualitas",
+                    "Menghindari tanggung jawab yang sulit untuk mengurangi beban kerja"
+                ],
+                kunci: 1
+            },
+            {
+                id: 3,
+                teks: "Kolega Anda melakukan kesalahan yang merugikan perusahaan. Anda melihat kesempatan untuk mempromosikan diri di hadapan atasan. Sikap yang paling etis adalah:",
+                opsi: [
+                    "Memanfaatkan kesempatan untuk menunjukkan superioritas Anda",
+                    "Membiarkan kesalahan itu terbongkar dengan sendirinya",
+                    "Memberitahu kolega secara pribadi dan memberikan kesempatan untuk memperbaiki",
+                    "Diam saja karena bukan tanggung jawab Anda"
+                ],
+                kunci: 2
+            },
+            {
+                id: 4,
+                teks: "Dalam sebuah rapat, atasan Anda meminta pendapat tentang keputusan yang Anda anggap kurang tepat. Yang paling akhlak adalah:",
+                opsi: [
+                    "Menyetujui demi menjaga loyalitas kepada atasan",
+                    "Memberikan pendapat jujur dengan cara yang hormat dan konstruktif",
+                    "Diam dan tidak memberikan masukan apapun",
+                    "Memberikan kritik yang tajam di depan semua orang untuk menunjukkan kepandaian"
+                ],
+                kunci: 1
+            },
+            {
+                id: 5,
+                teks: "Perusahaan memberikan kesempatan untuk mendapatkan keuntungan ekstra melalui cara yang meragukan. Anda tahu ini bisa membuat Anda kaya. Pilihan terbaik adalah:",
+                opsi: [
+                    "Menerimanya karena semua orang juga melakukan hal yang sama",
+                    "Menolaknya karena bertentangan dengan nilai-nilai etis Anda",
+                    "Menerimanya tetapi dalam jumlah kecil saja",
+                    "Mengambilnya dan menyumbangkan keuntungan itu untuk amal"
+                ],
+                kunci: 1
+            },
+            {
+                id: 6,
+                teks: "Seorang anggota tim memberikan kontribusi besar namun karena keterbatasan komunikasi, atasan tidak mengetahuinya. Apa yang harus Anda lakukan?",
+                opsi: [
+                    "Membiarkan saja karena bukan kontribusi Anda yang dihargai",
+                    "Memberitahu atasan tentang kontribusi tersebut agar ia mendapat pengakuan yang layak",
+                    "Mengklaim kontribusi itu sebagai milik Anda sendiri",
+                    "Menunggu hingga atasan menyadarinya dengan sendirinya"
+                ],
+                kunci: 1
+            },
+            {
+                id: 7,
+                teks: "Dalam menghadapi ketidakadilan di tempat kerja, sikap yang paling akhlak adalah:",
+                opsi: [
+                    "Bersikap pasif dan menerima apa adanya",
+                    "Melakukan perlawanan dengan cara yang tidak etis",
+                    "Berusaha memperjuangkan keadilan melalui saluran yang tepat dan damai",
+                    "Meninggalkan pekerjaan sebagai bentuk protes"
+                ],
+                kunci: 2
+            },
+            {
+                id: 8,
+                teks: "Rekan kerja Anda memiliki kinerja yang buruk. Anda diminta untuk mengevaluasinya. Pendekatan etis yang paling tepat adalah:",
+                opsi: [
+                    "Memberikan penilaian buruk tanpa memberikan arahan perbaikan",
+                    "Memberikan penilaian yang terlalu baik untuk menghindari konflik",
+                    "Memberikan evaluasi yang adil, konstruktif, dan membuka peluang untuk perbaikan",
+                    "Menolak untuk mengevaluasi karena takut akan merusak hubungan"
+                ],
+                kunci: 2
+            },
+            {
+                id: 9,
+                teks: "Anda menemukan kesempatan untuk mengambil keuntungan pribadi dari informasi internal perusahaan. Keputusan yang paling mulia adalah:",
+                opsi: [
+                    "Menggunakannya karena Anda berhak mendapatkan keuntungan",
+                    "Menjualnya ke pihak ketiga untuk mendapatkan uang tambahan",
+                    "Menolaknya karena melanggar kepercayaan yang diberikan perusahaan",
+                    "Menggunakannya tetapi dengan hati-hati agar tidak ketahuan"
+                ],
+                kunci: 2
+            },
+            {
+                id: 10,
+                teks: "Kunci kesuksesan jangka panjang dalam membangun karir yang bermakna adalah:",
+                opsi: [
+                    "Mengejar kekayaan dan status dengan segala cara",
+                    "Membangun kepercayaan, integritas, dan memberikan kontribusi nyata kepada organisasi",
+                    "Berpolitik dan membangun jaringan untuk kepentingan pribadi",
+                    "Fokus pada promosi tanpa memperhatikan kualitas pekerjaan"
+                ],
+                kunci: 1
+            }
+        ];
+
+        // ═══ STATE MANAGEMENT ═══
+        let indexAktif = 0;
+        let dataJawaban = {};
+        let sisaDetik = 600; // 10 menit
+
+        // ═══ INITIALIZE ═══
+        window.addEventListener('DOMContentLoaded', () => {
+            renderSoal();
+            updateTimer();
+            renderNavigasi();
+        });
+
+        // ═══ TIMER ═══
+        function updateTimer() {
+            const m = Math.floor(sisaDetik / 60);
+            const s = sisaDetik % 60;
+            const display = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            document.getElementById('timer').textContent = display;
+
+            if (sisaDetik > 0) {
+                sisaDetik--;
+                setTimeout(updateTimer, 1000);
+            } else {
+                akhiriUjian();
+            }
+        }
+
+        // ═══ RENDER SOAL ═══
+        function renderSoal() {
+            const soal = bankSoal[indexAktif];
+            const infoProgres = document.getElementById('infoProgres');
+            const soalNomor = document.getElementById('soalNomor');
+            const soalTeks = document.getElementById('soalTeks');
+            const opsiContainer = document.getElementById('opsiContainer');
+
+            infoProgres.textContent = `Soal ke-${indexAktif + 1} dari ${bankSoal.length}`;
+            soalNomor.textContent = `Soal No. ${indexAktif + 1}`;
+            soalTeks.textContent = soal.teks;
+
+            let htmlOpsi = soal.opsi.map((txt, i) => {
+                const huruf = String.fromCharCode(65 + i);
+                const isSelected = dataJawaban[indexAktif]?.jawaban === i;
+                return `
+                    <div class="opsi-item ${isSelected ? 'active' : ''}" onclick="pilihJawaban(${i})">
+                        <div class="opsi-label">${huruf}</div>
+                        <div class="opsi-teks">${txt}</div>
+                    </div>
+                `;
+            }).join('');
+
+            opsiContainer.innerHTML = htmlOpsi;
+        }
+
+        // ═══ PILIH JAWABAN ═══
+        function pilihJawaban(idxOpsi) {
+            if (!dataJawaban[indexAktif]) {
+                dataJawaban[indexAktif] = {};
+            }
+            dataJawaban[indexAktif].jawaban = idxOpsi;
+            dataJawaban[indexAktif].ragu = false;
+            renderSoal();
+            renderNavigasi();
+        }
+
+        // ═══ TANDAI RAGU ═══
+        function tandaiRagu() {
+            if (dataJawaban[indexAktif]?.jawaban !== undefined) {
+                dataJawaban[indexAktif].ragu = !dataJawaban[indexAktif].ragu;
+                renderNavigasi();
+            } else {
+                alert('Pilih jawaban terlebih dahulu sebelum menandai ragu-ragu.');
+            }
+        }
+
+        // ═══ NAVIGASI ═══
+        function navigasi(arah) {
+            const baru = indexAktif + arah;
+            if (baru >= 0 && baru < bankSoal.length) {
+                indexAktif = baru;
+                renderSoal();
+                renderNavigasi();
+                document.querySelector('.tryout-soal-area').scrollTop = 0;
+            }
+        }
+
+        // ═══ LOMPAT KE SOAL ═══
+        function lompatKeSoal(i) {
+            indexAktif = i;
+            renderSoal();
+            renderNavigasi();
+            document.querySelector('.tryout-soal-area').scrollTop = 0;
+        }
+
+        // ═══ RENDER NAVIGASI ═══
+        function renderNavigasi() {
+            const grid = document.getElementById('gridNavigasi');
+            grid.innerHTML = bankSoal.map((_, i) => {
+                let kelas = 'nav-item';
+                if (i === indexAktif) kelas += ' active';
+                else if (dataJawaban[i]?.ragu) kelas += ' ragu';
+                else if (dataJawaban[i]?.jawaban !== undefined) kelas += ' answered';
+
+                return `<button class="${kelas}" onclick="lompatKeSoal(${i})">${i + 1}</button>`;
+            }).join('');
+        }
+
+        // ═══ AKHIRI UJIAN ═══
+        function akhiriUjian() {
+            // Hitung jawaban benar
+            let benar = 0;
+            bankSoal.forEach((soal, i) => {
+                if (dataJawaban[i]?.jawaban === soal.kunci) benar++;
+            });
+
+            const total  = bankSoal.length;
+            const nilai  = Math.round((benar / total) * 100);
+            const terjawab = Object.keys(dataJawaban).filter(k => dataJawaban[k]?.jawaban !== undefined).length;
+
+            // Hitung durasi terpakai
+            const detikTerpakai = 600 - sisaDetik;
+            const mnt = Math.floor(detikTerpakai / 60);
+            const dtk = detikTerpakai % 60;
+            const durasi = `${mnt}m ${dtk}s`;
+
+            // Ambil nama peserta & kursus (dari URL atau default)
+            const params  = new URLSearchParams(window.location.search);
+            const nama    = params.get('nama')   || 'Peserta';
+            const kursus  = params.get('kursus') || 'AKHLAK Mix — Etika Profesional';
+
+            // Tentukan grade
+            let grade, gradeLabel, lulus;
+            if (nilai === 100)      { grade='A+'; gradeLabel='Sempurna';      lulus=true;  }
+            else if (nilai >= 90)   { grade='A';  gradeLabel='Sangat Baik';   lulus=true;  }
+            else if (nilai >= 80)   { grade='B';  gradeLabel='Baik';          lulus=true;  }
+            else if (nilai >= 70)   { grade='C';  gradeLabel='Cukup';         lulus=true;  }
+            else if (nilai >= 60)   { grade='D';  gradeLabel='Kurang';        lulus=false; }
+            else                    { grade='E';  gradeLabel='Sangat Kurang'; lulus=false; }
+
+            console.log('📊 Hasil Ujian:', { benar, total, nilai, grade, lulus });
+
+            // Redirect ke halaman sertifikat dengan semua data
+            const certParams = new URLSearchParams({
+                nama   : nama,
+                kursus : kursus,
+                nilai  : nilai,
+                benar  : benar,
+                total  : total,
+                durasi : durasi
+            });
+
+            const certURL = 'lms-sertifikat.html?' + certParams.toString();
+
+            // Always navigate the top-level window to the certificate page
+            if (window.top && window.top !== window) {
+                try {
+                    window.top.location.href = certURL;
+                } catch(e) {
+                    window.location.href = certURL;
+                }
+            } else {
+                window.location.href = certURL;
+            }
+        }
+
+        // ═══ KEMBALI ═══
+        function goBack() {
+            if (confirm('Kembali ke halaman sebelumnya? Progres Anda akan hilang.')) {
+                // Jika di dalam iframe (integrated-platform.html), navigasi parent
+                if (window.parent && window.parent !== window) {
+                    try {
+                        window.parent.location.href = 'integrated-platform.html?page=dashboard';
+                    } catch(e) {
+                        window.location.href = 'integrated-platform.html?page=dashboard';
+                    }
+                } else {
+                    window.location.href = 'integrated-platform.html?page=dashboard';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

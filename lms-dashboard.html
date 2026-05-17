@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard – Guru Inovatif LMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,600;1,500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:    #1a6b3c;
+      --primary-d:  #0f4224;
+      --primary-l:  #e8f5ee;
+      --accent:     #f4a024;
+      --accent-l:   #fff8ec;
+      --red:        #e74c3c;
+      --blue:       #3b82f6;
+      --bg:         #f3efe7;
+      --surface:    #ffffff;
+      --sidebar-bg: #0f2d1a;
+      --sidebar-w:  240px;
+      --text:       #1c1c1e;
+      --muted:      #6b7280;
+      --border:     #e5ddd0;
+      --radius:     14px;
+      --shadow:     0 2px 16px rgba(0,0,0,.07);
+    }
+
+    html, body { height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ═══ LAYOUT ═══ */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ═══ SIDEBAR ═══ */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--sidebar-bg);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; height: 100vh;
+      overflow-y: auto; z-index: 100;
+      animation: sideIn .4s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes sideIn { from { transform: translateX(-20px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+
+    .sb-logo {
+      padding: 24px 20px 20px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .sb-logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--accent); display: flex; align-items: center; justify-content: center;
+    }
+    .sb-logo-icon svg { width: 20px; height: 20px; fill: #fff; }
+    .sb-logo-name { font-size: 14px; font-weight: 800; color: #fff; line-height: 1.2; }
+    .sb-logo-name span { display: block; font-size: 10px; font-weight: 500; color: rgba(255,255,255,.45); letter-spacing: .5px; }
+
+    .sb-section { padding: 20px 12px 0; }
+    .sb-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.3); letter-spacing: 1.2px; padding: 0 8px; margin-bottom: 6px; }
+
+    .sb-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px; cursor: pointer;
+      color: rgba(255,255,255,.55); font-size: 13.5px; font-weight: 500;
+      transition: background .15s, color .15s; margin-bottom: 2px;
+      text-decoration: none;
+    }
+    .sb-item svg { width: 17px; height: 17px; opacity: .8; flex-shrink: 0; }
+    .sb-item:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.9); }
+    .sb-item.active { background: var(--primary); color: #fff; }
+    .sb-item.active svg { opacity: 1; }
+    .sb-item .badge {
+      margin-left: auto; background: var(--accent); color: #fff;
+      font-size: 10px; font-weight: 700; border-radius: 20px; padding: 1px 7px;
+    }
+
+    .sb-user {
+      margin-top: auto; padding: 16px;
+      border-top: 1px solid rgba(255,255,255,.07);
+      display: flex; align-items: center; gap: 10px; cursor: pointer;
+    }
+    .sb-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #e08010);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 14px; color: #fff; flex-shrink: 0;
+    }
+    .sb-user-info { flex: 1; min-width: 0; }
+    .sb-user-name { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sb-user-role { font-size: 11px; color: rgba(255,255,255,.4); }
+
+    /* ═══ MAIN ═══ */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    /* ═══ TOPBAR ═══ */
+    .topbar {
+      height: 64px; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 28px; position: sticky; top: 0; z-index: 50;
+      animation: fadeDown .35s ease both;
+    }
+    @keyframes fadeDown { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }
+
+    .topbar-title { font-size: 16px; font-weight: 800; }
+    .topbar-title span { color: var(--primary); }
+
+    .search-box {
+      flex: 1; max-width: 360px; margin-left: 20px;
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 7px 14px;
+    }
+    .search-box svg { color: var(--muted); width: 15px; height: 15px; flex-shrink: 0; }
+    .search-box input { background: none; border: none; outline: none; font-size: 13.5px; font-family: inherit; color: var(--text); width: 100%; }
+    .search-box input::placeholder { color: var(--muted); }
+
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 10px; border: 1.5px solid var(--border);
+      background: var(--surface); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted); position: relative;
+      transition: border-color .15s, color .15s;
+    }
+    .icon-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .icon-btn svg { width: 17px; height: 17px; }
+    .notif-dot {
+      position: absolute; top: 6px; right: 6px;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--red); border: 1.5px solid var(--surface);
+    }
+
+    /* ═══ CONTENT ═══ */
+    .content { padding: 28px; display: flex; flex-direction: column; gap: 28px; }
+
+    /* ═══ HERO BANNER ═══ */
+    .hero {
+      background: linear-gradient(115deg, var(--primary-d) 0%, #1a6b3c 55%, #2d9e5c 100%);
+      border-radius: 20px; padding: 32px 36px;
+      display: flex; align-items: center; justify-content: space-between;
+      overflow: hidden; position: relative;
+      animation: popIn .5s cubic-bezier(.16,1,.3,1) .1s both;
+    }
+    @keyframes popIn { from { opacity:0; transform: scale(.97); } to { opacity:1; transform: scale(1); } }
+
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Ccircle cx='40' cy='40' r='38' stroke='white' stroke-opacity='0.06' stroke-width='2'/%3E%3Ccircle cx='40' cy='40' r='25' stroke='white' stroke-opacity='0.04' stroke-width='1.5'/%3E%3C/g%3E%3C/svg%3E") repeat;
+      opacity: .5; pointer-events: none;
+    }
+
+    .hero-text { position: relative; z-index: 1; }
+    .hero-greeting { font-size: 13px; color: rgba(255,255,255,.6); font-weight: 500; margin-bottom: 6px; }
+    .hero-name { font-family: 'Lora', serif; font-size: 26px; color: #fff; font-weight: 600; margin-bottom: 8px; }
+    .hero-name em { color: #f4c060; font-style: italic; }
+    .hero-desc { font-size: 14px; color: rgba(255,255,255,.65); max-width: 380px; line-height: 1.6; }
+
+    .hero-cta {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--accent); color: #fff; border: none;
+      font-family: inherit; font-size: 13.5px; font-weight: 700;
+      padding: 10px 22px; border-radius: 10px; cursor: pointer;
+      margin-top: 18px; transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 16px rgba(244,160,36,.4);
+    }
+    .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 7px 22px rgba(244,160,36,.5); }
+
+    .hero-visual { position: relative; z-index: 1; flex-shrink: 0; }
+    .hero-rings {
+      width: 140px; height: 140px; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ring {
+      position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,.15);
+      animation: spin linear infinite;
+    }
+    .ring-1 { width: 140px; height: 140px; animation-duration: 20s; }
+    .ring-2 { width: 100px; height: 100px; animation-duration: 14s; animation-direction: reverse; border-style: dashed; }
+    .ring-3 { width: 60px; height: 60px; animation-duration: 9s; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .ring-center {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,.15); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+
+    /* ═══ STATS GRID ═══ */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+      animation: popIn .5s cubic-bezier(.16,1,.3,1) .2s both;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 22px;
+      display: flex; align-items: center; gap: 16px;
+      box-shadow: var(--shadow); transition: transform .15s;
+    }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .stat-icon.green  { background: var(--primary-l); }
+    .stat-icon.amber  { background: var(--accent-l); }
+    .stat-icon.blue   { background: #eff6ff; }
+    .stat-icon.red    { background: #fef2f2; }
+    .stat-info { min-width: 0; }
+    .stat-val  { font-size: 24px; font-weight: 800; letter-spacing: -.5px; }
+    .stat-lbl  { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 2px; }
+    .stat-trend { font-size: 11px; margin-top: 4px; font-weight: 600; }
+    .stat-trend.up   { color: var(--primary); }
+    .stat-trend.warn { color: var(--accent); }
+
+    /* ═══ TWO-COL ═══ */
+    .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 20px; animation: popIn .5s cubic-bezier(.16,1,.3,1) .3s both; }
+
+    /* ═══ SECTION CARD ═══ */
+    .sec-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+    .sec-head {
+      padding: 20px 24px 16px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .sec-head h3 { font-size: 15px; font-weight: 800; }
+    .sec-link { font-size: 12.5px; color: var(--primary); font-weight: 600; text-decoration: none; }
+    .sec-link:hover { text-decoration: underline; }
+
+    /* ═══ COURSE CARDS ═══ */
+    .courses-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 14px; }
+
+    .course-item {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
+      cursor: pointer; transition: border-color .15s, box-shadow .15s;
+    }
+    .course-item:hover { border-color: var(--primary); box-shadow: 0 4px 16px rgba(26,107,60,.1); }
+
+    .course-thumb {
+      width: 52px; height: 52px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .course-info { flex: 1; min-width: 0; }
+    .course-title { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+    .course-meta  { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .course-meta span { display: flex; align-items: center; gap: 3px; }
+
+    .progress-wrap { margin-top: 8px; }
+    .progress-bar-bg { height: 5px; background: var(--bg); border-radius: 10px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--primary), #2d9e5c); transition: width 1s ease; }
+    .progress-pct { font-size: 11px; font-weight: 700; color: var(--primary); margin-top: 3px; }
+
+    .course-badge {
+      font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .course-badge.ongoing  { background: var(--primary-l); color: var(--primary); }
+    .course-badge.new      { background: var(--accent-l); color: #b07010; }
+    .course-badge.done     { background: #f0fdf4; color: #16a34a; }
+
+    /* ═══ RIGHT COLUMN ═══ */
+    .right-col { display: flex; flex-direction: column; gap: 20px; }
+
+    /* ═══ STREAK CARD ═══ */
+    .streak-card { background: linear-gradient(135deg, var(--accent) 0%, #e08010 100%); border-radius: 18px; padding: 22px; color: #fff; }
+    .streak-title { font-size: 12px; font-weight: 700; opacity: .8; letter-spacing: .5px; margin-bottom: 4px; }
+    .streak-num { font-size: 44px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+    .streak-num span { font-size: 16px; font-weight: 600; opacity: .8; }
+    .streak-desc { font-size: 12px; opacity: .75; margin-bottom: 16px; }
+    .streak-days { display: flex; gap: 6px; }
+    .streak-day {
+      flex: 1; aspect-ratio: 1; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; letter-spacing: .3px;
+      background: rgba(255,255,255,.15);
+    }
+    .streak-day.done { background: rgba(255,255,255,.9); color: #b07010; }
+    .streak-day.today { background: #fff; color: #b07010; box-shadow: 0 0 0 2px rgba(255,255,255,.5); }
+
+    /* ═══ SERTIFIKASI CARD ═══ */
+    .cert-list { padding: 12px 20px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .cert-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); }
+    .cert-icon { font-size: 22px; }
+    .cert-name  { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .cert-date  { font-size: 11px; color: var(--muted); }
+    .cert-dl {
+      margin-left: auto; font-size: 11px; font-weight: 700;
+      color: var(--primary); background: var(--primary-l);
+      padding: 4px 10px; border-radius: 20px; white-space: nowrap;
+      cursor: pointer; text-decoration: none;
+    }
+
+    /* ═══ UPCOMING WEBINAR ═══ */
+    .webinar-list { padding: 12px 24px 16px; display: flex; flex-direction: column; gap: 10px; animation: popIn .5s cubic-bezier(.16,1,.3,1) .4s both; }
+    .webinar-item { display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); }
+    .webinar-date-box {
+      width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+      background: var(--primary-l); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; line-height: 1;
+    }
+    .webinar-date-box .dd { font-size: 18px; font-weight: 800; color: var(--primary); }
+    .webinar-date-box .mm { font-size: 9px; font-weight: 700; color: var(--primary); opacity: .7; letter-spacing: .5px; }
+    .webinar-info .w-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+    .webinar-info .w-meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+    .w-register {
+      margin-left: auto; flex-shrink: 0; align-self: center;
+      font-size: 11px; font-weight: 700; padding: 10px 16px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-d));
+      color: #fff; cursor: pointer; white-space: nowrap; text-decoration: none;
+      font-family: inherit; border: none; box-shadow: 0 6px 18px rgba(26,107,60,.18);
+      transition: transform .15s, background .15s, box-shadow .15s;
+    }
+    .w-register:hover {
+      background: linear-gradient(135deg, var(--primary-d), #145530);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(26,107,60,.22);
+    }
+
+    /* ═══ BOTTOM GRID ═══ */
+    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; animation: popIn .5s cubic-bezier(.16,1,.3,1) .45s both; }
+
+    /* ═══ SCROLL ═══ */
+    ::-webkit-scrollbar { width: 6px; } 
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+      .two-col { grid-template-columns: 1fr; }
+      .right-col { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      :root { --sidebar-w: 0px; }
+      .sidebar { transform: translateX(-240px); }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .bottom-grid { grid-template-columns: 1fr; }
+      .hero { flex-direction: column; gap: 20px; }
+      .hero-visual { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ════ SIDEBAR ════ -->
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6L23 9 12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+      </div>
+      <div class="sb-logo-name">Guru Inovatif <span>Learning Platform</span></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">MENU UTAMA</div>
+      <a href="#" class="sb-item active">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="#" class="sb-item" onclick="alert('Fitur Kelas Saya akan segera tersedia.'); return false;">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Kelas Saya
+        <span class="badge">3</span>
+      </a>
+      <a href="#" class="sb-item" onclick="alert('Fitur Jelajahi Kelas akan segera tersedia.'); return false;">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Jelajahi Kelas
+      </a>
+      <a href="#" class="sb-item" onclick="alert('Fitur Jadwal Webinar akan segera tersedia.'); return false;">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Jadwal Webinar
+      </a>
+    </div>
+
+    <div class="sb-section" style="margin-top:20px">
+      <div class="sb-label">PENCAPAIAN</div>
+      <a href="#" class="sb-item" onclick="showSertifikat(); return false;">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+        Sertifikat Saya
+      </a>
+      <a href="#" class="sb-item">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Progres Belajar
+      </a>
+    </div>
+
+    <div class="sb-section" style="margin-top:20px">
+      <div class="sb-label">LAINNYA</div>
+      <a href="#" class="sb-item">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 1 21 12a10 10 0 0 1-1.93 7.07M4.93 19.07A10 10 0 0 1 3 12a10 10 0 0 1 1.93-7.07M16.24 7.76l-8.49 8.49M7.76 7.76l8.48 8.48"/></svg>
+        Pengaturan
+      </a>
+      <a href="#" class="sb-item" style="color:rgba(255,80,80,.6)" onclick="handleLogout(); return false;">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Keluar
+      </a>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar">BW</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name">Budi Wicaksono</div>
+        <div class="sb-user-role">Guru SD Negeri 1</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ════ MAIN ════ -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-title">Guru <span>Inovatif</span></div>
+      <div class="search-box">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input placeholder="Cari kelas, materi, instruktur..."/>
+      </div>
+      <div class="topbar-actions">
+        <div class="icon-btn">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="notif-dot"></div>
+        </div>
+        <div class="icon-btn">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="sb-avatar" style="width:36px;height:36px;font-size:13px;cursor:pointer;">BW</div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- HERO -->
+      <div class="hero">
+        <div class="hero-text">
+          <div class="hero-greeting">Minggu, 27 April 2025 · Selamat datang kembali 👋</div>
+          <div class="hero-name">Halo, <em>Pak Budi!</em></div>
+          <div class="hero-desc">Anda memiliki 2 kelas yang sedang berjalan. Lanjutkan sesi belajar hari ini dan tingkatkan kompetensi mengajar Anda.</div>
+          <button class="hero-cta">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Lanjutkan Belajar
+          </button>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-rings">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+            <div class="ring-center">🎓</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon green">📚</div>
+          <div class="stat-info">
+            <div class="stat-val">12</div>
+            <div class="stat-lbl">Kelas Diikuti</div>
+            <div class="stat-trend up">↑ 3 bulan ini</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">🏆</div>
+          <div class="stat-info">
+            <div class="stat-val">7</div>
+            <div class="stat-lbl">Sertifikat Diperoleh</div>
+            <div class="stat-trend up">↑ 1 baru</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">⏱️</div>
+          <div class="stat-info">
+            <div class="stat-val">48<span style="font-size:16px;font-weight:500">j</span></div>
+            <div class="stat-lbl">Total Jam Belajar</div>
+            <div class="stat-trend up">↑ 5j minggu ini</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">🔥</div>
+          <div class="stat-info">
+            <div class="stat-val">9</div>
+            <div class="stat-lbl">Hari Streak</div>
+            <div class="stat-trend warn">⚡ Jaga streak Anda!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TWO COL -->
+      <div class="two-col">
+
+        <!-- KELAS SEDANG BERJALAN -->
+        <div class="sec-card">
+          <div class="sec-head">
+            <h3>📖 Kelas Sedang Berjalan</h3>
+            <a href="#" class="sec-link">Lihat Semua</a>
+          </div>
+          <div class="courses-list">
+
+            <div class="course-item">
+              <div class="course-thumb" style="background:#e8f5ee">💡</div>
+              <div class="course-info">
+                <div class="course-title">Pembelajaran Berdiferensiasi di Kelas</div>
+                <div class="course-meta">
+                  <span>👩‍🏫 Dr. Siti Rahayu</span>
+                  <span>🎬 12 Modul</span>
+                </div>
+                <div class="progress-wrap">
+                  <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:72%"></div></div>
+                  <div class="progress-pct">72% selesai · Modul 9 dari 12</div>
+                </div>
+              </div>
+              <span class="course-badge ongoing">Berlangsung</span>
+            </div>
+
+            <div class="course-item">
+              <div class="course-thumb" style="background:#fff8ec">🤖</div>
+              <div class="course-info">
+                <div class="course-title">Pemanfaatan AI dalam Proses Pembelajaran</div>
+                <div class="course-meta">
+                  <span>👨‍🏫 Reza Firmansyah</span>
+                  <span>🎬 8 Modul</span>
+                </div>
+                <div class="progress-wrap">
+                  <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:38%"></div></div>
+                  <div class="progress-pct">38% selesai · Modul 3 dari 8</div>
+                </div>
+              </div>
+              <span class="course-badge ongoing">Berlangsung</span>
+            </div>
+
+            <div class="course-item">
+              <div class="course-thumb" style="background:#eff6ff">📊</div>
+              <div class="course-info">
+                <div class="course-title">Asesmen Formatif & Sumatif Kurikulum Merdeka</div>
+                <div class="course-meta">
+                  <span>👩‍🏫 Indah Permatasari</span>
+                  <span>🎬 10 Modul</span>
+                </div>
+                <div class="progress-wrap">
+                  <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:10%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div>
+                  <div class="progress-pct" style="color:#3b82f6">10% selesai · Baru Dimulai</div>
+                </div>
+              </div>
+              <span class="course-badge new">Baru</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- RIGHT COL -->
+        <div class="right-col">
+          <!-- STREAK -->
+          <div class="streak-card">
+            <div class="streak-title">🔥 STREAK BELAJAR</div>
+            <div class="streak-num">9 <span>hari berturut</span></div>
+            <div class="streak-desc">Belajar 1 modul lagi hari ini untuk mempertahankan streak Anda!</div>
+            <div class="streak-days">
+              <div class="streak-day done">SEN</div>
+              <div class="streak-day done">SEL</div>
+              <div class="streak-day done">RAB</div>
+              <div class="streak-day done">KAM</div>
+              <div class="streak-day done">JUM</div>
+              <div class="streak-day done">SAB</div>
+              <div class="streak-day today">MIN</div>
+            </div>
+          </div>
+
+          <!-- SERTIFIKAT -->
+          <div class="sec-card">
+            <div class="sec-head">
+              <h3>🏅 Sertifikat Terbaru</h3>
+              <a href="#" class="sec-link">Semua</a>
+            </div>
+            <div class="cert-list">
+              <div class="cert-item">
+                <div class="cert-icon">🎖️</div>
+                <div>
+                  <div class="cert-name">Guru Penggerak Digital</div>
+                  <div class="cert-date">Diperoleh 12 Apr 2025</div>
+                </div>
+                <a href="#" class="cert-dl">Unduh</a>
+              </div>
+              <div class="cert-item">
+                <div class="cert-icon">📜</div>
+                <div>
+                  <div class="cert-name">Fasilitator Kelas Merdeka</div>
+                  <div class="cert-date">Diperoleh 2 Mar 2025</div>
+                </div>
+                <a href="#" class="cert-dl">Unduh</a>
+              </div>
+              <div class="cert-item">
+                <div class="cert-icon">⭐</div>
+                <div>
+                  <div class="cert-name">Pelatihan PAUD Holistik</div>
+                  <div class="cert-date">Diperoleh 18 Jan 2025</div>
+                </div>
+                <a href="#" class="cert-dl">Unduh</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEBINAR -->
+      <div class="sec-card">
+        <div class="sec-head">
+          <h3>📅 Webinar & Pelatihan Mendatang</h3>
+          <a href="#" class="sec-link" onclick="alert('Fitur Jadwal Webinar akan segera tersedia.'); return false;">Lihat Semua Jadwal</a>
+        </div>
+        <div class="webinar-list">
+
+          <div class="webinar-item">
+            <div class="webinar-date-box"><div class="dd">29</div><div class="mm">APR</div></div>
+            <div class="webinar-info">
+              <div class="w-title">Strategi Menulis Modul Ajar Menarik di Era Merdeka Belajar</div>
+              <div class="w-meta">
+                <span>🕐 09.00 – 11.00 WIB</span>
+                <span>👁️ 1.240 peserta</span>
+                <span>🟢 Gratis</span>
+              </div>
+            </div>
+            <button class="w-register" onclick="alert('Pendaftaran webinar akan segera tersedia.')">Daftar</button>
+          </div>
+
+          <div class="webinar-item">
+            <div class="webinar-date-box"><div class="dd">03</div><div class="mm">MEI</div></div>
+            <div class="webinar-info">
+              <div class="w-title">Canva untuk Guru: Membuat Bahan Ajar Visual yang Memikat</div>
+              <div class="w-meta">
+                <span>🕐 13.00 – 15.30 WIB</span>
+                <span>👁️ 2.880 peserta</span>
+                <span style="color:var(--accent)">⭐ Populer</span>
+              </div>
+            </div>
+            <button class="w-register" onclick="alert('Pendaftaran webinar akan segera tersedia.')">Daftar</button>
+          </div>
+
+          <div class="webinar-item">
+            <div class="webinar-date-box" style="background:#fef2f2"><div class="dd" style="color:#e74c3c">10</div><div class="mm" style="color:#e74c3c">MEI</div></div>
+            <div class="webinar-info">
+              <div class="w-title">Penilaian Proyek Berbasis Portofolio Digital untuk SD & SMP</div>
+              <div class="w-meta">
+                <span>🕐 09.00 – 12.00 WIB</span>
+                <span>👁️ 560 peserta</span>
+                <span>🔴 Bersertifikat</span>
+              </div>
+            </div>
+            <button class="w-register" onclick="alert('Pendaftaran webinar akan segera tersedia.')">Daftar</button>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+  // Animate progress bars on load
+  document.addEventListener('DOMContentLoaded', () => {
+    const bars = document.querySelectorAll('.progress-bar-fill');
+    bars.forEach(b => {
+      const target = b.style.width;
+      b.style.width = '0';
+      setTimeout(() => { b.style.width = target; }, 400);
+    });
+  });
+
+  function handleLogout() {
+    if (confirm('Apakah Anda yakin ingin keluar?')) {
+      window.location.href = 'lms-login.html';
+    }
+  }
+
+  // ── Sertifikat Saya Modal ──────────────────────────────────────────────
+  function showSertifikat() {
+    // Buat modal jika belum ada
+    if (!document.getElementById('sertModal')) {
+      const modal = document.createElement('div');
+      modal.id = 'sertModal';
+      modal.style.cssText = `
+        position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;
+        display:flex;align-items:center;justify-content:center;padding:20px;
+        animation:fadeIn .25s ease;
+      `;
+      modal.innerHTML = `
+        <div style="background:#fff;border-radius:20px;width:100%;max-width:680px;
+          max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+          <div style="background:linear-gradient(135deg,#0f4224,#1a6b3c);padding:20px 24px;
+            border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;">
+            <div style="color:#fff;font-size:16px;font-weight:800;">🏆 Sertifikat Saya</div>
+            <button onclick="document.getElementById('sertModal').remove()"
+              style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;
+              border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+          </div>
+          <div id="sertModalBody" style="padding:24px;">
+            <div style="text-align:center;padding:40px 0;color:#6b7280;">
+              <div style="font-size:32px;margin-bottom:12px;">⏳</div>
+              <div>Memuat data sertifikat...</div>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+      modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+      loadSertifikatData();
+    } else {
+      document.getElementById('sertModal').style.display = 'flex';
+    }
+  }
+
+  async function loadSertifikatData() {
+    const body = document.getElementById('sertModalBody');
+    try {
+      // Firebase config (sama dengan index.html)
+      if (!window._fbInitDash) {
+        const cfg = {
+          apiKey:"AIzaSyCFx4Ra_Oq1FSi77_Hiw0TmCKvqnB13wjk",
+          authDomain:"portfolio-database-59d3f.firebaseapp.com",
+          projectId:"portfolio-database-59d3f",
+          storageBucket:"portfolio-database-59d3f.firebasestorage.app",
+          messagingSenderId:"750538196520",
+          appId:"1:750538196520:web:de4ddfacd4845f7ab8171d"
+        };
+        // Load Firebase SDK dynamically if not loaded
+        if (typeof firebase === 'undefined') {
+          body.innerHTML = `<div style="text-align:center;padding:40px;color:#6b7280;">
+            <div style="font-size:32px;margin-bottom:12px;">📋</div>
+            <div style="font-weight:700;margin-bottom:8px;">Firebase tidak tersedia</div>
+            <div style="font-size:13px;">Buka halaman ini melalui lms-login.html untuk akses penuh.</div>
+          </div>`;
+          return;
+        }
+        if (!firebase.apps.length) firebase.initializeApp(cfg);
+        window._fbInitDash = true;
+      }
+
+      const db   = firebase.firestore();
+      const snap = await db.collection('sertifikat').orderBy('createdAt','desc').limit(20).get();
+
+      if (snap.empty) {
+        body.innerHTML = `<div style="text-align:center;padding:40px;color:#6b7280;">
+          <div style="font-size:48px;margin-bottom:16px;">🎓</div>
+          <div style="font-weight:700;font-size:16px;margin-bottom:8px;">Belum ada sertifikat</div>
+          <div style="font-size:13px;line-height:1.6;">Selesaikan kursus dan post-test untuk mendapatkan sertifikat.</div>
+        </div>`;
+        return;
+      }
+
+      let html = `<div style="display:flex;flex-direction:column;gap:12px;">`;
+      snap.forEach(doc => {
+        const d = doc.data();
+        const gradeColor = {
+          'A+':'#0f4224','A':'#065f46','B':'#1e40af','C':'#92400e','D':'#991b1b','E':'#7f1d1d'
+        }[d.grade] || '#6b7280';
+        const gradeBg = {
+          'A+':'#d1fae5','A':'#d1fae5','B':'#dbeafe','C':'#fef3c7','D':'#fee2e2','E':'#fecaca'
+        }[d.grade] || '#f3f4f6';
+
+        html += `
+          <div style="border:1px solid #e5ddd0;border-radius:14px;padding:16px 20px;
+            display:flex;align-items:center;gap:16px;background:#fff;">
+            <div style="width:52px;height:52px;border-radius:12px;background:${gradeBg};
+              display:flex;align-items:center;justify-content:center;flex-shrink:0;
+              font-size:22px;font-weight:800;color:${gradeColor};">${d.grade}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:14px;margin-bottom:3px;
+                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.kursus}</div>
+              <div style="font-size:12px;color:#6b7280;margin-bottom:4px;">${d.nama} · ${d.tanggal}</div>
+              <div style="font-family:monospace;font-size:11px;color:#1a6b3c;
+                background:#e8f5ee;padding:2px 8px;border-radius:4px;display:inline-block;">${d.nomorSertifikat}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-size:24px;font-weight:800;color:${gradeColor};">${d.nilai}</div>
+              <div style="font-size:11px;color:#6b7280;">/ 100</div>
+            </div>
+          </div>`;
+      });
+      html += `</div>`;
+      body.innerHTML = html;
+
+    } catch(e) {
+      body.innerHTML = `<div style="text-align:center;padding:40px;color:#991b1b;">
+        <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+        <div style="font-weight:700;">Gagal memuat data</div>
+        <div style="font-size:13px;margin-top:8px;color:#6b7280;">${e.message}</div>
+      </div>`;
+    }
+  }
+</script>
+</body>
+</html>
